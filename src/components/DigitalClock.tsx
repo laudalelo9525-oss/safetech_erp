@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 
 interface TimeZoneData {
   name: string;
@@ -9,14 +9,15 @@ interface TimeZoneData {
 const DigitalClock: React.FC = () => {
   const [times, setTimes] = useState<{ [key: string]: string }>({});
 
-  const timeZones: TimeZoneData[] = [
+  // Memoize timeZones to prevent recreating on every render
+  const timeZones = useMemo<TimeZoneData[]>(() => [
     { name: 'New York', timezone: 'America/New_York', offset: -5 },
     { name: 'London', timezone: 'Europe/London', offset: 0 },
     { name: 'Tokyo', timezone: 'Asia/Tokyo', offset: 9 },
     { name: 'Sydney', timezone: 'Australia/Sydney', offset: 10 },
     { name: 'Dubai', timezone: 'Asia/Dubai', offset: 4 },
     { name: 'Los Angeles', timezone: 'America/Los_Angeles', offset: -8 },
-  ];
+  ], []);
 
   useEffect(() => {
     const updateTime = () => {
@@ -38,11 +39,14 @@ const DigitalClock: React.FC = () => {
       setTimes(newTimes);
     };
 
+    // Call immediately to avoid initial delay
     updateTime();
+    
+    // Set interval for subsequent updates
     const interval = setInterval(updateTime, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [timeZones]); // Add timeZones to dependency array
 
   return (
     <div className="digital-clock-container">
