@@ -1,0 +1,99 @@
+SAFETECH PRECAST OPERATIONS CONTROL PANEL
+==========================================
+DEVELOPER HANDOFF & ARCHITECTURE GUIDE
+==========================================
+
+This document details the exact state of the Safetech Operations Control Panel ERP application, outlining its module architecture, database seeding structures, design standards, and detailed instructions for the next development team to integrate live API services.
+
+1. PROJECT OVERVIEW & BRANDING
+------------------------------
+* Application Name: Safetech Operations Control Panel
+* Industry Focus: Strictly limited to Precast Concrete Manufacturing Operations (e.g., structural element tracking, casting, mould/bed occupancy, yard transfers, concrete curing strength logs, logistics trailer loading, dispatch deliveries, and maintenance schedules).
+* Corporate Restrictions: DO NOT introduce any Finance, Billing, Procurement, HR, Payroll, Accounting, Taxation, or Costing modules.
+* Branding Assets: Registered Safetech Precast logo asset at /src/assets/safetech_logo.png across all invoice, Delivery Note, and A3 print layouts.
+* UI Foundation: 
+  * Collapsible Sidebar Menu (supporting both light and dark mode toggles via class-based tailwind configurations).
+  * Responsive layout that scales to mobile screen sizes without needing desktop site overrides.
+
+2. ERP DATABASE SCHEMA (CLIENT-SIDE LOCAL STORAGE MOCK)
+-------------------------------------------------------
+Seeded inside supabaseClient.ts under storage tag mock_db_seeded_v8 to mock 16 precast operational tables:
+1. projects: Project Master metadata.
+2. customers: Customer details.
+3. concrete_grades: Standard grade classifications (C45, C50, C60).
+4. mix_designs: Active volumetric mix designs and W/C ratios.
+5. element_types: Precast structural types (Solid Wall, HCS, Columns, Beams).
+6. production_beds: Long prestressed casting beds (length/width details).
+7. moulds: Casting moulds catalog.
+8. yard_bays: Storage yard bay coordinates.
+9. trailers: Logistics fleet trailers.
+10. drivers: Assigned drivers directory.
+11. crane_operators: Yard gantry crane operators database.
+12. qc_inspectors: Qualified inspectors.
+13. element_planning: Master schedules planning.
+14. production_casting: Daily concrete pours casting logs.
+15. reinforcement_tracking: Steel rebar cage fabrication logs.
+16. qc_inspections: Pre-pour quality checkouts and test cylinder logs.
+17. yard_movement: Bay-to-bay gantry crane storage transfer logs.
+18. dispatch_planning: Trailer logistics dispatch logs.
+19. deliveries: Delivery Note trips aggregates.
+20. element_traceability: 8-stage lifecycle timestamp logs.
+
+3. DEVELOPED ERP MODULES & ROUTES
+---------------------------------
+All routes are fully configured inside AppRoutes.tsx:
+* /planning (PlanningPage.tsx):
+  * Project Master: CRUD registry.
+  * Element Planning: Design drawings scheduled priorities.
+  * Casting Calendar: Weekly scheduled allocations.
+  * Bed Utilization View: Interactive long casting beds occupancy meter.
+* /production (ProductionPage.tsx):
+  * Casting Log: Logs shift, supervisor, grade, volume, start/finish times, and batch numbers.
+  * Reinforcement Tracking: Records rebar cage fabrications, steel weights, and fabricator.
+  * QC Inspection Check: Pre-pour quality clearance checklist (Pass/Fail updates elements).
+* /stockyard (StockyardPage.tsx):
+  * Element Inventory: Full database filters.
+  * Yard Movement: Crane operators gantry shift log.
+  * Curing Strength Tracker: Computes OPC maturity curves (1d=40%, 3d=78% [Ready for Dispatch]).
+  * Industrial Label Generator: Generates high-fidelity precast label prints (A5, A6, Thermal) with Google Font-based scannable Barcode 128 and QR Code (encoding element profile JSON).
+* /logistics/planning (LogisticsPlanningPage.tsx):
+  * Form to schedule dispatch loading trips linked to fleet status counters.
+* /delivery-note (DeliveryNotePage.tsx):
+  * Pre-compiles elements to commit exactly one trip row (avoiding duplicates).
+  * Auto-dispatches stockyard elements on save.
+  * Prints A4 receipts containing: driver/customer signatures, delivery remarks, and photo slots.
+* /reports (DeliveryReportPage.tsx):
+  * A3 Daily Operations Report: Subtotals, elements type split category breakdown tables (Precast vs Hollow Core), Recharts graphic logs, and Excel/CSV exporting.
+  * Element Traceability Audit Lookup: Search elements and print A4 traceability certificates tracing the complete 8-stage lifecycle timeline.
+* /qr-scanner (QrScannerPage.tsx):
+  * Simulated scanner displaying complete element profiles (QC checklist details, delivery logs, and movement history).
+* /master (MasterDataPage.tsx):
+  * CRUD interfaces for all 12 precast master tables.
+* /maintenance (MaintenancePage.tsx):
+  * Calendar scheduler for preventive services and breakdowns history logs.
+
+4. OPERATIONAL TELEMETRY & TRACEABILITY FLOW
+--------------------------------------------
+When an element progresses through the factory:
+1. Planned: Scheduled in PlanningPage.tsx -> populates element_traceability with planning_timestamp.
+2. Casted & Cured: Logged in Casting Log -> stamps casting_timestamp and curing_timestamp.
+3. QC Passed: Logged in QC Check -> stamps qc_timestamp and stockyard_timestamp.
+4. Loaded & Dispatched: Delivery note compiled -> stamps loading_timestamp and dispatch_timestamp.
+5. Delivered: Document committed -> stamps delivery_timestamp.
+
+5. TECHNICAL REQUIREMENTS & BUILD COMMANDS
+------------------------------------------
+* Core Stack: React 18, Vite, TypeScript, Tailwind CSS, Recharts.
+* Unit Testing: Vitest (all 9 core tests pass cleanly).
+* Production Compilation command:
+  /usr/bin/node /root/build/node_modules/vite/bin/vite.js build
+  (Compiles cleanly with 0 TypeScript/ESLint warnings).
+* Development Server command:
+  /usr/bin/node /root/build/node_modules/vite/bin/vite.js --host 0.0.0.0 --port 3000
+  (Hot Module Replacement active).
+
+6. NEXT STEPS FOR LIVE INTEGRATION
+----------------------------------
+1. Replace the mock endpoints inside supabaseClient.ts with authentic Supabase credentials (SUPABASE_URL and SUPABASE_KEY).
+2. Map local storage tables to actual Supabase database tables using standard PostgreSQL schemas.
+3. Configure authentication tokens inside useAuth.tsx to query live active directory directories.

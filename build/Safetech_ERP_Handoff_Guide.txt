@@ -1,0 +1,365 @@
+================================================================================
+  SAFETECH PRECAST OPERATIONS CONTROL PANEL
+  COMPLETE DEVELOPER HANDOFF & ARCHITECTURE GUIDE
+================================================================================
+  Document Version : 1.0
+  Date             : 6 July 2026
+  Build Status     : PASS (0 errors)
+  Test Status      : PASS (9/9 unit tests)
+  Database Version : mock_db_seeded_v8
+================================================================================
+
+
+================================================================================
+  SECTION 1: APPLICATION IDENTITY & BRANDING
+================================================================================
+
+  Application Name  : Safetech Operations Control Panel
+  Package Name      : safetech-control-center
+  Version           : 0.1.0
+  Industry          : Precast Concrete Manufacturing Operations
+  Company           : Safetech Precast Building Manufacturing LLC
+  Address           : National Industrial Park, Dubai - UAE, PO Box 18337
+  Tel               : 04-8813195
+  Fax               : 04-2829929
+  Email             : info@safe-tech.ae
+  Web               : www.safe-tech.ae
+  Logo Asset        : /src/assets/safetech_logo.png
+  Fonts             : Inter (UI), Libre Barcode 128 (scannable barcodes)
+
+  RESTRICTION: DO NOT add Finance, Accounting, Payroll, Purchase Orders,
+  Billing, Taxation, Costing, HR Payroll, or ERP Accounting modules.
+  This system is strictly for PRECAST OPERATIONS ONLY.
+
+
+================================================================================
+  SECTION 2: UI / UX ARCHITECTURE
+================================================================================
+
+  Navigation     : Collapsible sidebar (Sidebar.tsx, 251 lines)
+                   6 main sections: Planning, Production, Stockyard,
+                   Logistics & Reports, Master, QR Scanner
+  Theme          : Light/Dark mode toggle (Tailwind class-based dark: variants)
+  Responsive     : Desktop, tablet, and mobile - no "request desktop site"
+  Design         : Glassmorphism panels, red/black accent palette,
+                   gradient buttons, Framer Motion micro-animations
+  Print Layouts  : A3 (297x420mm) operations reports
+                   A4 (210x297mm) delivery notes & audit certificates
+                   A5/A6/Thermal stockyard labels
+
+
+================================================================================
+  SECTION 3: TECHNOLOGY STACK
+================================================================================
+
+  PRODUCTION DEPENDENCIES:
+  +--------------------------+---------+-------------------------------------+
+  | Package                  | Version | Purpose                             |
+  +--------------------------+---------+-------------------------------------+
+  | react                    | ^18.2.0 | Core UI framework                   |
+  | react-dom                | ^18.2.0 | DOM rendering                       |
+  | react-router-dom         | ^6.23.0 | Client-side routing                 |
+  | recharts                 | ^2.5.0  | Charts & data visualization         |
+  | framer-motion            | ^10.0.0 | Animations & transitions            |
+  | @supabase/supabase-js    | ^2.0.0  | Database client (currently mocked)  |
+  | papaparse                | ^5.4.1  | CSV parsing for imports/exports     |
+  +--------------------------+---------+-------------------------------------+
+
+  DEV DEPENDENCIES:
+  +--------------------------+---------+-------------------------------------+
+  | vite                     | ^5.0.0  | Build tool & dev server             |
+  | typescript               | ^5.0.0  | Type safety                         |
+  | tailwindcss              | ^3.4.0  | Utility-first CSS                   |
+  | vitest                   | ^1.0.0  | Unit testing                        |
+  | @playwright/test         | ^1.45.0 | E2E testing (configured)            |
+  | @vitejs/plugin-react     | ^4.0.0  | React Fast Refresh                  |
+  +--------------------------+---------+-------------------------------------+
+
+
+================================================================================
+  SECTION 4: SOURCE FILE INVENTORY
+================================================================================
+
+  Total Files        : 37 source files
+  Total Lines of Code: 8,517 lines
+
+  PAGES (18 files):
+  +-----+--------------------------------+-------+-----------------------------+
+  | #   | File                           | Lines | Description                 |
+  +-----+--------------------------------+-------+-----------------------------+
+  |  1  | DispatchForm.tsx               |   931 | Legacy dispatch form        |
+  |  2  | DeliveryReportPage.tsx         |   832 | A3 report + audit lookup    |
+  |  3  | DeliveryNotePage.tsx           |   819 | Delivery notes + A4 print   |
+  |  4  | ProductionPage.tsx             |   803 | Casting, rebar, QC checks   |
+  |  5  | StockyardPage.tsx              |   645 | Inventory, labels, movement |
+  |  6  | PlanningPage.tsx               |   536 | Project master, calendar    |
+  |  7  | QrScannerPage.tsx              |   446 | Scanner + timeline          |
+  |  8  | AdminPanel.tsx                 |   327 | Admin controls              |
+  |  9  | CastingLogPage.tsx             |   329 | Standalone casting log      |
+  | 10  | MasterDataPage.tsx             |   289 | 12-table CRUD master data   |
+  | 11  | LogisticsPlanningPage.tsx       |   247 | Dispatch + fleet status     |
+  | 12  | MaintenancePage.tsx            |   247 | Maintenance + breakdowns    |
+  | 13  | Dashboard.tsx                  |   244 | Main KPI dashboard          |
+  | 14  | CsvImport.tsx                  |   175 | CSV bulk data import        |
+  | 15  | DeliveryForm.tsx               |   114 | Delivery entry form         |
+  | 16  | FleetStatusForm.tsx            |    96 | Fleet trailer status        |
+  | 17  | Login.tsx                      |    77 | Authentication login        |
+  | 18  | ControllerEntry.tsx            |    53 | Controller entry point      |
+  +-----+--------------------------------+-------+-----------------------------+
+
+  COMPONENTS (5 files):
+  +-----+--------------------------------+-------+-----------------------------+
+  |  1  | Sidebar.tsx                    |   251 | Collapsible sidebar         |
+  |  2  | NavBar.tsx                     |   123 | Top navigation bar          |
+  |  3  | Typeahead.tsx                  |    47 | Autocomplete search         |
+  |  4  | AlertsPanel.tsx                |    31 | Notifications panel         |
+  |  5  | CountUpCard.tsx                |    26 | Animated KPI counter        |
+  +-----+--------------------------------+-------+-----------------------------+
+
+  CORE LIBRARIES (4 files):
+  +-----+--------------------------------+-------+-----------------------------+
+  |  1  | supabaseClient.ts              |   513 | Mock DB with 20 tables      |
+  |  2  | analytics.ts                   |   169 | Analytics utilities          |
+  |  3  | AppRoutes.tsx                  |    84 | All route definitions       |
+  |  4  | useAuth.tsx                    |    65 | Authentication hook         |
+  +-----+--------------------------------+-------+-----------------------------+
+
+  SERVICES (3 files):
+  - deliveryService.ts  : Delivery CRUD operations
+  - dispatchService.ts  : Dispatch workflow logic
+  - fleetService.ts     : Fleet status management
+
+
+================================================================================
+  SECTION 5: DATABASE SCHEMA (MOCK v8 - 20 TABLES)
+================================================================================
+
+  All tables seeded in supabaseClient.ts under localStorage key
+  "mock_db_seeded_v8".
+
+  MASTER TABLES (12):
+  +----+--------------------+--------------------------------------------------+
+  | #  | Table              | Key Fields                                       |
+  +----+--------------------+--------------------------------------------------+
+  |  1 | projects           | id, project_no, project_name, client,            |
+  |    |                    | consultant, location, status                     |
+  |  2 | customers          | id, name, contact_person, phone, email, address  |
+  |  3 | concrete_grades    | id, grade_name (C45/C50/C60), strength_mpa       |
+  |  4 | mix_designs        | id, mix_code, grade_id, cement_kg, water_ratio   |
+  |  5 | element_types      | id, type_name (Solid Wall/HCS/Column/Beam)       |
+  |  6 | production_beds    | id, bed_name, length_m, width_m, status          |
+  |  7 | moulds             | id, mould_code, element_type, dimensions         |
+  |  8 | yard_bays          | id, bay_code, zone, row, column, capacity        |
+  |  9 | trailers           | id, plate_no, supplier, type, capacity_tons      |
+  | 10 | drivers            | id, name, license_no, phone                      |
+  | 11 | crane_operators    | id, name, certification, shift                   |
+  | 12 | qc_inspectors      | id, name, qualification, department              |
+  +----+--------------------+--------------------------------------------------+
+
+  OPERATIONAL TABLES (8):
+  +----+-------------------------+---------------------------------------------+
+  | #  | Table                   | Key Fields                                  |
+  +----+-------------------------+---------------------------------------------+
+  | 13 | element_planning        | id, project_id, drawing_no, element_type,   |
+  |    |                         | qty, planned_date, bed_id, mould_id,        |
+  |    |                         | priority, status                            |
+  | 14 | production_casting      | id, date, shift, bed_id, grade_id,          |
+  |    |                         | volume_m3, supervisor, batch_no             |
+  | 15 | reinforcement_tracking  | id, element_id, cage_type, steel_weight_kg, |
+  |    |                         | fabricator, status                          |
+  | 16 | qc_inspections          | id, element_id, inspector_id, cover_check,  |
+  |    |                         | dimensions_check, embedded_check, result    |
+  | 17 | yard_movement           | id, element_id, from_bay, to_bay,           |
+  |    |                         | crane_operator_id, timestamp                |
+  | 18 | dispatch_planning       | id, trailer_id, driver_id, project_id,      |
+  |    |                         | planned_date, elements, status              |
+  | 19 | deliveries              | id, project_no, project_name, location,     |
+  |    |                         | trailer_id, element_type, element_count,    |
+  |    |                         | dn_no, volume_cum, weight_tons, remarks     |
+  | 20 | element_traceability    | id, element_code, planning_timestamp,       |
+  |    |                         | casting_timestamp, qc_timestamp,            |
+  |    |                         | curing_timestamp, stockyard_timestamp,      |
+  |    |                         | loading_timestamp, dispatch_timestamp,      |
+  |    |                         | delivery_timestamp                          |
+  +----+-------------------------+---------------------------------------------+
+
+
+================================================================================
+  SECTION 6: MODULE STATUS & FEATURES
+================================================================================
+
+  MODULE 1: PLANNING (/planning)
+  Component: PlanningPage.tsx (536 lines)
+  Status: COMPLETE
+  Features:
+    [x] Project Master CRUD
+    [x] Element Planning (drawing no, revision, qty, priority, bed, mould)
+    [x] Casting Schedule Calendar (weekly view)
+    [x] Bed Utilization View (interactive occupancy meters)
+    [x] Auto-generates element codes & logs planning_timestamp
+
+  MODULE 2: PRODUCTION (/production)
+  Component: ProductionPage.tsx (803 lines)
+  Status: COMPLETE
+  Features:
+    [x] Casting Log (shift, supervisor, grade, volume, batch, times)
+    [x] Reinforcement Tracking (cage type, steel weight, fabricator)
+    [x] QC Pre-Pour Inspection (cover, dimensions, embedded, pass/fail)
+    [x] Auto-stamps casting_timestamp, curing_timestamp, qc_timestamp
+
+  MODULE 3: STOCKYARD (/stockyard)
+  Component: StockyardPage.tsx (645 lines)
+  Status: COMPLETE
+  Features:
+    [x] Element Inventory Database (search, filter, sort)
+    [x] Yard Movement Log (crane operator, from/to bay, timestamp)
+    [x] Curing Strength Tracker (OPC maturity curves: 1d=40%, 3d=78%)
+    [x] Label Generator (A5, A6, Thermal sizes)
+    [x] QR Code generation (encodes element JSON profile)
+    [x] Barcode 128 scannable labels (Libre Barcode 128 font)
+
+  MODULE 4: LOGISTICS & REPORTS
+  Status: COMPLETE
+    [x] Logistics Planning (/logistics/planning) - 247 lines
+        Dispatch scheduling form, fleet status counters, trailer assignment
+    [x] Delivery Note (/delivery-note) - 819 lines
+        Element selection, auto-dispatch, A4 print with signatures
+    [x] Reports (/reports) - 832 lines
+        A3 Daily Operations Report (24h shift 06:00-06:00)
+        Precast vs HCS category split breakdowns
+        Recharts pie/bar visualizations
+        Efficiency KPIs (avg weight/trip, avg volume/trip)
+        Excel/CSV export
+        Element Traceability Audit Lookup (A4 printable certificates)
+
+  MODULE 5: MASTER DATA (/master)
+  Component: MasterDataPage.tsx (289 lines)
+  Status: COMPLETE
+  Features:
+    [x] CRUD interfaces for all 12 master tables
+
+  MODULE 6: QR SCANNER (/qr-scanner)
+  Component: QrScannerPage.tsx (446 lines)
+  Status: COMPLETE
+  Features:
+    [x] Simulated mobile camera scan + USB barcode gun input
+    [x] Element profile display (type, dimensions, QC, bay location)
+    [x] 8-stage visual traceability lifecycle timeline
+
+  MODULE 7: MAINTENANCE (/maintenance)
+  Component: MaintenancePage.tsx (247 lines)
+  Status: COMPLETE
+  Features:
+    [x] Preventive maintenance calendar scheduler
+    [x] Breakdown history logs
+
+
+================================================================================
+  SECTION 7: ELEMENT TRACEABILITY FLOW (AUTOMATIC 8-STAGE LIFECYCLE)
+================================================================================
+
+  Every precast element automatically receives timestamps as it progresses:
+
+  Stage 1: PLANNING     -->  PlanningPage.tsx saves element schedule
+                              stamps planning_timestamp
+                                    |
+  Stage 2: CASTING      -->  ProductionPage.tsx logs concrete pour
+                              stamps casting_timestamp
+                                    |
+  Stage 3: QC           -->  ProductionPage.tsx QC checklist pass
+                              stamps qc_timestamp
+                                    |
+  Stage 4: CURING       -->  ProductionPage.tsx auto-logs
+                              stamps curing_timestamp
+                                    |
+  Stage 5: STOCKYARD    -->  QC pass moves to bay storage
+                              stamps stockyard_timestamp
+                                    |
+  Stage 6: LOADING      -->  DeliveryNotePage.tsx loads onto trailer
+                              stamps loading_timestamp
+                                    |
+  Stage 7: DISPATCH     -->  DeliveryNotePage.tsx gate-out
+                              stamps dispatch_timestamp
+                                    |
+  Stage 8: DELIVERY     -->  DeliveryNotePage.tsx site receipt
+                              stamps delivery_timestamp
+
+  QR CODE ENCODING FORMAT (per element):
+  {
+    "id": "00-WL02-2525M-012",
+    "project": "SP2544P",
+    "type": "Solid Wall",
+    "status": "Ready"
+  }
+
+
+================================================================================
+  SECTION 8: BUILD & DEVELOPMENT COMMANDS
+================================================================================
+
+  # Install dependencies
+  npm install
+
+  # Start development server (HMR on port 3000)
+  npx vite --host 0.0.0.0 --port 3000
+
+  # Production build (outputs to /dist)
+  npx vite build
+
+  # Run unit tests (9 tests)
+  npx vitest run
+
+  # Run E2E tests (Playwright - configured but not yet active)
+  npx playwright test
+
+
+================================================================================
+  SECTION 9: TEST STATUS
+================================================================================
+
+  +---------------------------+----------------------------------+-------+------+
+  | Suite                     | File                             | Tests | Pass |
+  +---------------------------+----------------------------------+-------+------+
+  | Form Validation           | tests/unit/formValidation.test.ts|   1   |  YES |
+  | Analytics                 | tests/unit/analytics.test.ts     |   8   |  YES |
+  +---------------------------+----------------------------------+-------+------+
+  | TOTAL                     |                                  |   9   |  ALL |
+  +---------------------------+----------------------------------+-------+------+
+
+
+================================================================================
+  SECTION 10: INTEGRATION ROADMAP (NEXT STEPS FOR LIVE DEPLOYMENT)
+================================================================================
+
+  PHASE 1: DATABASE MIGRATION
+  1. Create a Supabase project at supabase.com
+  2. Replace mock credentials in supabaseClient.ts with real
+     SUPABASE_URL and SUPABASE_ANON_KEY
+  3. Create PostgreSQL tables matching the 20 mock table schemas
+  4. Migrate seed data or start fresh with empty tables
+  5. Remove the localStorage-based mock layer from supabaseClient.ts
+
+  PHASE 2: AUTHENTICATION
+  1. Configure Supabase Auth in useAuth.tsx with real login flows
+  2. Set up role-based access (Admin, Supervisor, QC Inspector, Driver)
+  3. Replace the mock login in Login.tsx with Supabase email/password auth
+
+  PHASE 3: DEPLOYMENT
+  1. Build production bundle: npx vite build
+  2. Deploy /dist to Vercel, Netlify, or self-hosted Nginx
+  3. Configure environment variables for SUPABASE_URL and SUPABASE_ANON_KEY
+  4. Set up SSL certificate for erp.safetech.local (QR code URL encoding)
+
+  PHASE 4: ENHANCEMENTS
+  1. Enable Playwright E2E test suite
+  2. Add real camera API integration in QrScannerPage (replace simulation)
+  3. Implement WebSocket real-time updates for yard movement tracking
+  4. Add PDF generation library (e.g., @react-pdf/renderer) for server-side
+     report generation
+
+
+================================================================================
+  END OF DOCUMENT
+  Safetech Precast Operations Control Panel - Developer Handoff Guide
+  Generated: 6 July 2026
+================================================================================
